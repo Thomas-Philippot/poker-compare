@@ -38,8 +38,8 @@ class PokerTableService
 
     private function tableHaveDuplicates(): bool
     {
-        $array = array_merge($this->firstHand->getCards(), $this->secondHand->getCards());
-        return count($array) !== count(array_unique($array));
+        return count($this->firstHand->getCards()) !== count(array_unique($this->firstHand->getCards())) ||
+            count($this->secondHand->getCards()) !== count(array_unique($this->secondHand->getCards()));
     }
 
 }

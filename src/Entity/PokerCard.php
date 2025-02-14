@@ -2,28 +2,12 @@
 
 namespace App\Entity;
 
-class Card
+class PokerCard extends AbstractPokerRules
 {
 
     private string $value;
 
     private string $suit;
-
-    private array $ranking = [
-        '2' => 1,
-        '3' => 2,
-        '4' => 3,
-        '5' => 4,
-        '6' => 5,
-        '7' => 6,
-        '8' => 7,
-        '9' => 8,
-        'T' => 9,
-        'J' => 10,
-        'Q' => 11,
-        'K' => 12,
-        'A' => 13
-    ];
 
     /**
      * @param string $value
@@ -45,7 +29,7 @@ class Card
         return $this->value;
     }
 
-    public function setValue(string $value): Card
+    public function setValue(string $value): PokerCard
     {
         $this->value = $value;
         return $this;
@@ -56,7 +40,7 @@ class Card
         return $this->suit;
     }
 
-    public function setSuit(string $suit): Card
+    public function setSuit(string $suit): PokerCard
     {
         $this->suit = $suit;
         return $this;

@@ -2,7 +2,6 @@
 
 namespace App\Command;
 
-use App\Entity\PokerHand;
 use App\Exception\DuplicatedCardsException;
 use App\Exception\InvalidCardListException;
 use App\Service\PokerTableService;
@@ -38,7 +37,7 @@ class CompareHandsCommand extends Command
             $secondHandString = $input->getArgument("secondHand");
 
             $this->tableService = new PokerTableService($firstHandString, $secondHandString);
-            $this->tableService->play();
+            $output->writeln($this->tableService->play());
 
         } catch (InvalidCardListException | DuplicatedCardsException $e) {
             $output->writeln($e->getMessage());

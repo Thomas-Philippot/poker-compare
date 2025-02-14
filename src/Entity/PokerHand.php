@@ -3,13 +3,12 @@
 namespace App\Entity;
 
 use App\Exception\InvalidCardListException;
-use phpDocumentor\Reflection\Types\This;
 
-class PokerHand
+class PokerHand extends AbstractPokerRules
 {
 
     /**
-     * @var Card[]
+     * @var PokerCard[]
      */
     private array $cards;
 
@@ -28,9 +27,10 @@ class PokerHand
         foreach ($cards as $card) {
             $value = $card[0];
             $suit = $card[1];
-            $newCard = new Card($value, $suit);
+            $newCard = new PokerCard($value, $suit);
             $this->cards[] = $newCard;
         }
+        $this->orderCards();
     }
 
     public function getCards(): array
@@ -46,24 +46,12 @@ class PokerHand
 
     public function compareWith(PokerHand $hand): int
     {
-        $playerRank = $this->getHandRank();
-        $opponentRank = $hand->getHandRank();
-
-        if ($playerRank > $opponentRank) {
-            // WIN
-            return 1;
-        }
-
-        if ($playerRank < $opponentRank) {
-            // LOOSE
-            return 2;
-        }
-
-        $playerScore = $this->getHandScore();
-        $opponentScore = $hand->getHandScore();
+        $playerScore = $this->getScore();
+        $opponentScore = $hand->getScore();
 
         dump($playerScore);
         dump($opponentScore);
+
         if ($playerScore > $opponentScore) {
             // WIN
             return 1;
@@ -73,73 +61,86 @@ class PokerHand
             // LOOSE
             return 2;
         }
-        // TODO : compare the rank of the hands
         // TIE
         return 3;
     }
 
-    private function getHandRank(): int
+    private function orderCards(): void
     {
-        $fromTenToAce = $this->isFromTenToAce();
+        usort($this->cards, static function (PokerCard $a, PokerCard $b) {
+            return $a->getRank() - $b->getRank();
+        });
+
+        // if hand is 2, 3, 4 and 5, hands needs to be sorted with A first
+        if ($this->totalRankEquals(23)) {
+            usort($this->cards, function (PokerCard $a, PokerCard $b) {
+                return array_search($a->getValue(), $this->order, true) - array_search($b->getValue(), $this->order, true);
+            });
+        }
+    }
+
+    private function getScore(): int
+    {
+        $fromTenToAce = $this->totalRankEquals(55);
         $isStraight = $this->isStraight();
         $sameSuit = $this->isSameSuit();
-        $sameRank = $this->getSameRank();
+        $duplicates = $this->getDuplicates();
 
         // ROYAL FLUSH
         if ($fromTenToAce && $sameSuit) {
             dump("ROYAL FLUSH");
-            return 10;
+            return 1000;
         }
 
         // STRAIGHT FLUSH
         if ($isStraight && $sameSuit) {
             dump("STRAIGHT FLUSH");
-            return 9;
+            return 900;
         }
 
         // FOUR OF A KIND
-        if (count($sameRank) > 0 && $sameRank[0] === 4) {
+        if (count($duplicates) > 0 && $duplicates[0]['count'] === 4) {
             dump("FOUR OF A KIND");
-            return 8;
+            return 800 + $this->getKickerScore($duplicates);
         }
 
         // FULL HOUSE
-        if (count($sameRank) > 1 && $sameRank[0] === 2 && $sameRank[1] === 3) {
+        if (count($duplicates) > 1 && $duplicates[0]['count'] === 2 && $duplicates[1]['count'] === 3) {
             dump("FULL HOUSE");
-            return 7;
+            return 700;
         }
 
         // FLUSH
         if ($sameSuit) {
             dump("FLUSH");
-            return 6;
+            return 600;
         }
 
         // STRAIGHT
         if ($isStraight) {
             dump("STRAIGHT");
-            return 5;
+            return 500;
         }
 
         // THREE OF A KIND
-        if (count($sameRank) > 0 && $sameRank[0] === 3) {
+        if (count($duplicates) > 0 && $duplicates[0]['count'] === 3) {
             dump("THREE OF A KIND");
-            return 4;
+            return 400 + $this->getDuplicatesScore($duplicates) + $this->getKickerScore($duplicates);
         }
 
         // TWO PAIR
-        if (count($sameRank) > 1 && $sameRank[0] === 2 && $sameRank[1] === 2) {
+        if (count($duplicates) > 1 && $duplicates[0]['count'] === 2 && $duplicates[1]['count'] === 2) {
             dump("two pair");
-            return 7;
+            return 300 + $this->getDuplicatesScore($duplicates) + $this->getKickerScore($duplicates);
         }
 
         // PAIR
-        if (count($sameRank) > 0 && $sameRank[0] === 2) {
+        if (count($duplicates) > 0 && $duplicates[0]['count'] === 2) {
             dump("pair");
-            return 2;
+            return 200 + $this->getDuplicatesScore($duplicates) + $this->getKickerScore($duplicates);
         }
 
-        return 1;
+        return $this->getHandScore();
     }
 
     private function getHandScore(): int
@@ -151,16 +152,45 @@ class PokerHand
         return $score;
     }
 
-    private function getSameRank(): array
+    private function getDuplicatesScore(array $duplicates): int
+    {
+        $score = 0;
+        foreach ($duplicates as $card) {
+            $score += $this->ranking[$card['value']];
+        }
+        return $score;
+    }
+
+    private function getKickerScore(array $duplicates): int
+    {
+        $values = [];
+        foreach ($this->cards as $card) {
+            if (
+                $card->getValue() === $duplicates[0]['value'] ||
+                (count($duplicates) > 1 && $card->getValue() === $duplicates[1]['value'])
+            ) {
+                continue;
+            }
+            $values[] = $card->getValue();
+        }
+
+        $score = 0;
+        foreach ($values as $value) {
+            $score += $this->ranking[$value];
+        }
+        return $score;
+    }
+
+    private function getDuplicates(): array
     {
         $values = [];
         foreach ($this->cards as $card) {
             $values[] = $card->getValue();
         }
         $results = [];
-        foreach (array_count_values($values) as $count) {
+        foreach (array_count_values($values) as $value => $count) {
             if ($count >= 2) {
-                $results[] = $count;
+                $results[] = ['value' => (string) $value, 'count' => $count];
             }
         }
         sort($results);
@@ -180,24 +210,23 @@ class PokerHand
 
     private function isStraight(): bool
     {
-        // TODO : vérifier que la suite puisse finir ou commencé par A
-        $prev = null;
+        $prevIndex = null;
         foreach ($this->cards as $card) {
-            if ($prev !== null && $card->getRank() !== $prev - 1) {
+            if ($prevIndex !== null && $card->getValue() !== $this->order[$prevIndex + 1]) {
                 return false;
             }
-            $prev = $card->getRank();
+            $prevIndex = array_search($card->getValue(), $this->order, true);
 
         }
         return true;
     }
 
-    private function isFromTenToAce(): bool
+    private function totalRankEquals(int $rank): bool
     {
         $total = 0;
         foreach ($this->cards as $card) {
             $total += $card->getRank();
         }
-        return $total === 55;
+        return $total === $rank;
     }
 }

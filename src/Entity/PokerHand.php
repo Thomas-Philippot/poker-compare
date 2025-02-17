@@ -49,9 +49,6 @@ class PokerHand extends AbstractPokerRules
         $playerScore = $this->getScore();
         $opponentScore = $hand->getScore();
 
-        dump($playerScore);
-        dump($opponentScore);
-
         if ($playerScore > $opponentScore) {
             // WIN
             return 1;
@@ -149,7 +146,6 @@ class PokerHand extends AbstractPokerRules
         foreach ($duplicates as $card) {
             $score += $this->ranking[$card['value']];
         }
-        dump("duplicates : " . $score);
         return $score;
     }
 
@@ -170,7 +166,6 @@ class PokerHand extends AbstractPokerRules
         foreach ($values as $value) {
             $score += $this->ranking[$value];
         }
-        dump("kicker : " . $score);
         return $score;
     }
 

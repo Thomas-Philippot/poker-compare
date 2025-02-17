@@ -21,6 +21,16 @@ class CompareHandsCommand extends Command
 
     public PokerTableService $tableService;
 
+    /**
+     * @param PokerTableService $tableService
+     */
+    public function __construct(PokerTableService $tableService)
+    {
+        parent::__construct();
+        $this->tableService = $tableService;
+    }
+
+
     protected function configure(): void
     {
         $this->setDescription("Create two poker hand and compare them.")
@@ -36,7 +46,8 @@ class CompareHandsCommand extends Command
             $firstHandString = $input->getArgument("firstHand");
             $secondHandString = $input->getArgument("secondHand");
 
-            $this->tableService = new PokerTableService($firstHandString, $secondHandString);
+            $this->tableService->init($firstHandString, $secondHandString);
+            $this->tableService->play();
             $output->writeln($this->tableService->play());
 
         } catch (InvalidCardListException | DuplicatedCardsException $e) {

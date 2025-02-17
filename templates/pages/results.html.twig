@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <span class="fs-4">Poker Compare</span>
+        </header>
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                {% set messages = app.flashes('error') %}
+                {% for message in messages %}
+                    <div class="p-2 mb-4 bg-danger-subtle border rounded-3 border-danger">
+                        <p class="fs-3">An error occurred</p>
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+                {% if messages is empty %}
+                    <div class="container-fluid py-5 text-center">
+                        <h1 class="display-5 fw-bold">{{ result }}</h1>
+                    </div>
+                {% endif %}
+                <a class="btn btn-secondary" href="/">Back</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

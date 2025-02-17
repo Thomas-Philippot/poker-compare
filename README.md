@@ -22,3 +22,9 @@ or run the command from within the `frankenphp` container.
 bin/console app:poker-hand <firstHand> <secondHand>
 ```
 
+## Test
+
+From the frankenphp container, run :
+```bash
+bin/console phpunit
+```

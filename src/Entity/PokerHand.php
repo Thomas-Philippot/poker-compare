@@ -88,56 +88,47 @@ class PokerHand extends AbstractPokerRules
 
         // ROYAL FLUSH
         if ($fromTenToAce && $sameSuit) {
-            dump("ROYAL FLUSH");
-            return 1000;
+            return self::ROYAL_FLUSH_SCORE;
         }
 
         // STRAIGHT FLUSH
         if ($isStraight && $sameSuit) {
-            dump("STRAIGHT FLUSH");
-            return 900;
+            return self::STRAIGHT_FLUSH_SCORE + $this->getHandScore();
         }
 
         // FOUR OF A KIND
         if (count($duplicates) > 0 && $duplicates[0]['count'] === 4) {
-            dump("FOUR OF A KIND");
-            return 800 + $this->getKickerScore($duplicates);
+            return self::FOUR_OF_A_KIND_SCORE + $this->getDuplicatesScore($duplicates) * 100 + $this->getKickerScore($duplicates);
         }
 
         // FULL HOUSE
         if (count($duplicates) > 1 && $duplicates[0]['count'] === 2 && $duplicates[1]['count'] === 3) {
-            dump("FULL HOUSE");
-            return 700;
+            return self::FULL_HOUSE_SCORE + $this->getDuplicatesScore($duplicates);
         }
 
         // FLUSH
         if ($sameSuit) {
-            dump("FLUSH");
-            return 600;
+            return self::FLUSH_SCORE + $this->getHandScore();
         }
 
         // STRAIGHT
         if ($isStraight) {
-            dump("STRAIGHT");
-            return 500;
+            return self::STRAIGHT_SCORE + $this->getHandScore();
         }
 
         // THREE OF A KIND
         if (count($duplicates) > 0 && $duplicates[0]['count'] === 3) {
-            dump("THREE OF A KIND");
-            return 400 + $this->getDuplicatesScore($duplicates) + $this->getKickerScore($duplicates);
+            return self::THREE_OF_A_KIND_SCORE + $this->getDuplicatesScore($duplicates) * 100 + $this->getKickerScore($duplicates);
         }
 
         // TWO PAIR
         if (count($duplicates) > 1 && $duplicates[0]['count'] === 2 && $duplicates[1]['count'] === 2) {
-            dump("two pair");
-            return 300 + $this->getDuplicatesScore($duplicates) + $this->getKickerScore($duplicates);
+            return self::TWO_PAIR_SCORE + $this->getDuplicatesScore($duplicates) * 100 + $this->getKickerScore($duplicates);
         }
 
         // PAIR
         if (count($duplicates) > 0 && $duplicates[0]['count'] === 2) {
-            dump("pair");
-            return 200 + $this->getDuplicatesScore($duplicates) + $this->getKickerScore($duplicates);
+            return self::PAIR_SCORE + $this->getDuplicatesScore($duplicates) * 100 + $this->getKickerScore($duplicates);
         }
 
         return $this->getHandScore();
@@ -158,6 +149,7 @@ class PokerHand extends AbstractPokerRules
         foreach ($duplicates as $card) {
             $score += $this->ranking[$card['value']];
         }
+        dump("duplicates : " . $score);
         return $score;
     }
 
@@ -178,6 +170,7 @@ class PokerHand extends AbstractPokerRules
         foreach ($values as $value) {
             $score += $this->ranking[$value];
         }
+        dump("kicker : " . $score);
         return $score;
     }
 

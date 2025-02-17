@@ -16,7 +16,7 @@ class PokerTableService
     /**
      * @throws InvalidCardListException
      */
-    public function __construct($firstPlayer, $secondPlayer)
+    public function init(string $firstPlayer, string $secondPlayer): void
     {
         $this->firstHand = new PokerHand($firstPlayer);
         $this->secondHand = new PokerHand($secondPlayer);

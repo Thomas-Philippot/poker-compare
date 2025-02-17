@@ -43,15 +43,18 @@ class AppController extends AbstractController
         PokerTableService $service
     ): Response
     {
-        $result = "";
+        $result = null;
+        $winningHand = null;
         try {
             $service->init($firstHand, $secondHand);
             switch ($service->play()) {
                 case 1:
-                    $result = "Player 1 wins";
+                    $result = "First player wins";
+                    $winningHand = $firstHand;
                     break;
                 case 2:
-                    $result = "Player 2 wins";
+                    $result = "Second player wins";
+                    $winningHand = $secondHand;
                     break;
                 case 3:
                     $result = "Tie";
@@ -61,7 +64,10 @@ class AppController extends AbstractController
         } catch (InvalidCardListException | DuplicatedCardsException $e) {
             $this->addFlash('error', $e->getMessage());
         }
-        return $this->render('pages/results.html.twig', ['result' => $result]);
+        return $this->render('pages/results.html.twig', [
+            'result' => $result,
+            'winningHand' => $winningHand
+        ]);
     }
 
 }

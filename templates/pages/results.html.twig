@@ -16,10 +16,11 @@
                 {% if messages is empty %}
                     <div class="container-fluid py-5 text-center">
                         <h1 class="display-5 fw-bold">{{ result }}</h1>
+                        <p>{{ winningHand }}</p>
                     </div>
                 {% endif %}
-                <a class="btn btn-secondary" href="/">Back</a>
             </div>
         </div>
+        <a class="btn btn-secondary" href="/">Back</a>
     </div>
 {% endblock %}

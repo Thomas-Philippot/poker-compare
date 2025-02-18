@@ -18,6 +18,8 @@ You can access the web app at https://localhost
 
 or run the command from within the `frankenphp` container.
 
+> `docker exec -it frankenphp bash` to access php.
+
 ```bash
 bin/console app:poker-hand <firstHand> <secondHand>
 ```
